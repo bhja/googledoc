@@ -2,7 +2,9 @@ package doc.google.api.service;
 
 
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,16 +29,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 
+
 public class GoogleDocService {
 	
 	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 	 
 	private static final List<String> SCOPES = Collections.singletonList(DocsScopes.DOCUMENTS_READONLY);
-    
-    
     private final Gson gson = new GsonBuilder()
            .setPrettyPrinting()
            .create(); 
+    
+    private static String outputPath = "tmp"+File.separator+"poc";
 
     public GoogleDocService() {
     }
@@ -48,17 +51,19 @@ public class GoogleDocService {
 		                .build();
 		       Document document = service.documents().get(documentId).execute();
 		       System.out.println("*******************START OF JSON FOR DOCUMENT ID - "+documentId+"*******************");
-		       System.out.println(gson.toJson(document).toString());
+		       String output = gson.toJson(document).toString();
+		       dumpJsonToFile(output,documentId);
+		       System.out.println(output);
 		       System.out.println("*******************END OF JSON FOR DOCUMENT ID - "+documentId+"*******************");
-		}catch(Exception ex) {
-			System.out.print("Error processing the request\n");
+		       
+		 }catch(Exception ex) {
+			System.out.println("Error processing the request");
 			if(ex instanceof GoogleJsonResponseException) {
 				System.out.println("*******START OF ERROR STATUS *******\n"  + ((GoogleJsonResponseException)ex).getMessage() + "\n*******END OF ERROR STATUS *******");
 			}else {
 			throw new RuntimeException(ex);
 		}
 		}
-		
 	}
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
@@ -71,11 +76,19 @@ public class GoogleDocService {
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File("token")))
+                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(outputPath)))
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8080).build();
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+    }
+    
+    protected void dumpJsonToFile(String output,String docId) {
+    	try(FileWriter fw=new FileWriter(outputPath+java.io.File.separator+docId+".json")){
+    		 fw.write(output);
+    	}catch(Exception e) {
+    		System.out.println("Error writing to file");
+    	}
     }
 			
 		
