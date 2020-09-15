@@ -17,7 +17,8 @@ https://oauth2.googleapis.com/token
 
 
 4. Get the refresh_token from the response which would look something like this.
-	{
+
+{
   "access_token": "*************************************",
   "expires_in": 3599,
   "refresh_token": "***********************************",
