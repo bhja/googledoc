@@ -1,10 +1,6 @@
 package doc.google.api.service;
 
-
-
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,69 +24,52 @@ import com.google.api.services.docs.v1.model.Document;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+public class GoogleDocService extends AbstractGoogleDocService {
 
-
-public class GoogleDocService {
-	
 	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-	 
-	private static final List<String> SCOPES = Collections.singletonList(DocsScopes.DOCUMENTS_READONLY);
-    private final Gson gson = new GsonBuilder()
-           .setPrettyPrinting()
-           .create(); 
-    
-    private static String outputPath = "tmp"+File.separator+"poc";
 
-    public GoogleDocService() {
-    }
-    public void convertToJson(String documentId){
+	private static final List<String> SCOPES = Collections.singletonList(DocsScopes.DOCUMENTS_READONLY);
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+	
+	public GoogleDocService() {
+	}
+
+	public void convertToJson(String documentId) {
 		try {
 			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-			   Credential credentials = getCredentials(HTTP_TRANSPORT);
-			   Docs service = new Docs.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName("POC")
-		                .build();
-		       Document document = service.documents().get(documentId).execute();
-		       System.out.println("*******************START OF JSON FOR DOCUMENT ID - "+documentId+"*******************");
-		       String output = gson.toJson(document).toString();
-		       dumpJsonToFile(output,documentId);
-		       System.out.println(output);
-		       System.out.println("*******************END OF JSON FOR DOCUMENT ID - "+documentId+"*******************");
-		       
-		 }catch(Exception ex) {
+			Credential credentials = getCredentials(HTTP_TRANSPORT);
+			Docs service = new Docs.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName("POC")
+					.build();
+			Document document = service.documents().get(documentId).execute();
+			dumpJsonToFile(gson.toJson(document).toString(), documentId);
+	
+		} catch (Exception ex) {
 			System.out.println("Error processing the request");
-			if(ex instanceof GoogleJsonResponseException) {
-				System.out.println("*******START OF ERROR STATUS *******\n"  + ((GoogleJsonResponseException)ex).getMessage() + "\n*******END OF ERROR STATUS *******");
-			}else {
-			throw new RuntimeException(ex);
-		}
+			if (ex instanceof GoogleJsonResponseException) {
+				System.out.println("*******START OF ERROR STATUS *******\n"
+						+ ((GoogleJsonResponseException) ex).getMessage() + "\n*******END OF ERROR STATUS *******");
+			} else {
+				throw new RuntimeException(ex);
+			}
 		}
 	}
 
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-        
-        InputStream in = GoogleDocService.class.getClassLoader().getResourceAsStream("client_secrets.json");
-        if (in == null) {
-            throw new FileNotFoundException("Resource not found: client_secrets.json");
-        }
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+	private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
 
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(outputPath)))
-                .setAccessType("offline")
-                .build();
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8080).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-    }
-    
-    protected void dumpJsonToFile(String output,String docId) {
-    	try(FileWriter fw=new FileWriter(outputPath+java.io.File.separator+docId+".json")){
-    		 fw.write(output);
-    	}catch(Exception e) {
-    		System.out.println("Error writing to file");
-    	}
-    }
-			
-		
+		InputStream in = GoogleDocService.class.getClassLoader().getResourceAsStream("client_secrets.json");
+		if (in == null) {
+			throw new FileNotFoundException("Resource not found: client_secrets.json");
+		}
+		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY,
+				clientSecrets, SCOPES).setDataStoreFactory(new FileDataStoreFactory(new java.io.File(outputPath)))
+						.setAccessType("offline").build();
+		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8080).build();
+		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+	}
+
+	
 
 }
