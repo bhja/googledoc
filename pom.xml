@@ -59,7 +59,7 @@
 		    <configuration>
 		      <filesets>
 		        <fileset>
-		          <directory>${basedir}/tmp</directory>
+		          <directory>/tmp</directory>
 		          <includes>
 		            <include>**/*</include>
 		          </includes>

@@ -65,7 +65,6 @@ public class GoogleDocServiceWithToken extends AbstractGoogleDocService {
 				return;
 			}
 			dumpJsonToFile(responseString, documentId);
-			System.out.println(responseString);
 			
 
 		} catch (Exception ex) {
