@@ -10,8 +10,8 @@ public class Main {
 
 	public static void main(String... strings) {
 		try {
+			//Pass a property called API to go via the client credentials
 			IGoogleDocService service = (strings.length == 0  ? new GoogleDocServiceWithToken() : new GoogleDocService());
-			
 			try (Scanner input = new Scanner(System.in)) {
 				do {
 					System.out.println("Enter the document Id or -1 to exit :: ");
